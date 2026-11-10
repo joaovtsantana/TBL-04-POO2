@@ -1,0 +1,94 @@
+
+using System;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
+
+class Program
+{
+    private static readonly Logger logger =
+        LogManager.GetCurrentClassLogger();
+
+    static void Main(string[] args)
+    {
+        // Configuração do NLog
+        var config = new LoggingConfiguration();
+
+        // Destino: arquivo
+        var arquivo = new FileTarget("arquivo")
+        {
+            FileName = "log.txt",
+            Layout = "${longdate} | ${level} | ${message} ${exception}"
+        };
+
+        // Destino: console
+        var console = new ConsoleTarget("console")
+        {
+            Layout = "${longdate} | ${level} | ${message} ${exception}"
+        };
+
+        // Adicionando os destinos
+        config.AddRule(LogLevel.Info, LogLevel.Fatal, arquivo);
+        config.AddRule(LogLevel.Info, LogLevel.Fatal, console);
+
+        LogManager.Configuration = config;
+
+        try
+        {
+            Console.WriteLine("=== SISTEMA DE LOG COM NLOG ===");
+
+            // Log informativo
+            logger.Info("Aplicação iniciada");
+
+            // Log técnico
+            logger.Debug("Conexão com banco de dados aberta");
+
+            // Log de auditoria
+            int usuarioId = 10;
+            logger.Info("Usuário {0} realizou login", usuarioId);
+
+            // Log de pedido
+            int pedidoId = 123;
+            logger.Info("Pedido criado com ID {0}", pedidoId);
+
+            // Log de aviso
+            logger.Warn("Tentativa de operação inválida");
+
+            // Log de erro
+            try
+            {
+                int numero = int.Parse("abc");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Erro ao converter valor");
+            }
+
+            // Logging com contexto
+            decimal valor = 200;
+            int origemId = 1;
+            int destinoId = 2;
+
+            logger.Info(
+                "Transferência de {0} da conta {1} para {2}",
+                valor,
+                origemId,
+                destinoId
+            );
+
+            logger.Info("Aplicação finalizada");
+
+            Console.WriteLine("Logs registrados com sucesso!");
+        }
+        catch (Exception ex)
+        {
+            logger.Fatal(ex, "Falha crítica na aplicação");
+        }
+        finally
+        {
+            LogManager.Shutdown();
+        }
+
+        Console.ReadKey();
+    }
+}
